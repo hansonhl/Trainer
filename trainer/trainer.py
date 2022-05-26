@@ -1204,9 +1204,9 @@ class Trainer:
                             f"epoch-{self.epochs_done}",
                             f"step-{self.total_steps_done}",
                         ]
-                        self.dashboard_logger.add_artifact(
-                            file_or_dir=self.output_path, name="checkpoint", artifact_type="model", aliases=aliases
-                        )
+                        # self.dashboard_logger.add_artifact(
+                        #     file_or_dir=self.output_path, name="checkpoint", artifact_type="model", aliases=aliases
+                        # )
 
                 # training visualizations
                 if hasattr(self.model, "module") and hasattr(self.model.module, "train_log"):
