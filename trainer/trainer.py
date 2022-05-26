@@ -485,6 +485,9 @@ class Trainer:
             self.scaler = None
 
         if self.args.restore_path:
+            print("="*10 + "DEBUG" + "="*10)
+            print("Restoring model from", self.args.restore_path)
+            print("="*25)
             (self.model, self.optimizer, self.scaler, self.restore_step, self.restore_epoch) = self.restore_model(
                 self.config, args.restore_path, self.model, self.optimizer, self.scaler
             )
@@ -501,7 +504,7 @@ class Trainer:
 
         # count model size
         num_params = count_parameters(self.model)
-        logger.info("\n > Model has %i parameters", num_params)
+        print("\n > Model has %i parameters", num_params)
 
         self.callbacks.on_init_end(self)
         self.dashboard_logger.add_config(config)
@@ -658,18 +661,18 @@ class Trainer:
                 obj.load_state_dict(states)
             return obj
 
-        logger.info(" > Restoring from %s ...", os.path.basename(restore_path))
+        print(" > Restoring from %s ...", os.path.basename(restore_path))
         checkpoint = load_fsspec(restore_path, map_location="cpu")
         try:
-            logger.info(" > Restoring Model...")
+            print(" > Restoring Model...")
             model.load_state_dict(checkpoint["model"])
-            logger.info(" > Restoring Optimizer...")
+            print(" > Restoring Optimizer...")
             optimizer = _restore_list_objs(checkpoint["optimizer"], optimizer)
             if "scaler" in checkpoint and self.use_amp_scaler and checkpoint["scaler"]:
-                logger.info(" > Restoring Scaler...")
+                print(" > Restoring Scaler...")
                 scaler = _restore_list_objs(checkpoint["scaler"], scaler)
         except (KeyError, RuntimeError, ValueError):
-            logger.info(" > Partial model initialization...")
+            print(" > Partial model initialization...")
             model_dict = model.state_dict()
             model_dict = set_partial_state_dict(model_dict, checkpoint["model"], config)
             model.load_state_dict(model_dict)
@@ -677,7 +680,7 @@ class Trainer:
 
         optimizer = self.restore_lr(config, self.args, model, optimizer)
 
-        logger.info(" > Model restored from step %i", checkpoint["step"])
+        print(" > Model restored from step %i", checkpoint["step"])
         restore_step = checkpoint["step"] + 1  # +1 not to immediately checkpoint if the model is restored
         restore_epoch = checkpoint["epoch"]
         torch.cuda.empty_cache()
@@ -1416,11 +1419,11 @@ class Trainer:
         """Restore the best loss from the args.best_path if provided else
         from the model (`args.restore_path` or `args.continue_path`) used for resuming the training"""
         if self.restore_step != 0 or self.args.best_path:
-            logger.info(" > Restoring best loss from %s ...", os.path.basename(self.args.best_path))
+            print(" > Restoring best loss from %s ...", os.path.basename(self.args.best_path))
             ch = load_fsspec(self.args.restore_path, map_location="cpu")
             if "model_loss" in ch:
                 self.best_loss = ch["model_loss"]
-            logger.info(" > Starting with loaded last best loss %f", self.best_loss)
+            print(" > Starting with loaded last best loss %f", self.best_loss)
 
     def test(self, model=None, test_samples=None) -> None:
         """Run evaluation steps on the test data split. You can either provide the model and the test samples
@@ -1434,7 +1437,7 @@ class Trainer:
                 given in the initialization. Defaults to None.
         """
 
-        logger.info(" > USING TEST SET...")
+        print(" > USING TEST SET...")
         self.keep_avg_eval = KeepAverage()
 
         if model is not None:
