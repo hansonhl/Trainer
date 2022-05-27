@@ -5,6 +5,7 @@ import os
 import pathlib
 import subprocess
 import time
+from pprint import pprint
 
 import torch
 
@@ -27,7 +28,7 @@ def distribute():
     # set active gpus from CUDA_VISIBLE_DEVICES or --gpus
     if "CUDA_VISIBLE_DEVICES" in os.environ:
         num_gpus = torch.cuda.device_count()
-        gpus = range(num_gpus)
+        gpus = [str(gpu) for gpu in range(num_gpus)]
     else:
         gpus = args.gpus.split(",")
         num_gpus = len(gpus)
@@ -57,11 +58,11 @@ def distribute():
         my_env["RANK"] = f"{local_gpu_id}"
         my_env["CUDA_VISIBLE_DEVICES"] = f"{','.join(gpus)}"
         command[-1] = f"--rank={rank}"
-        # prevent stdout for processes with rank != 0
-        stdout = None
-        p = subprocess.Popen(["python3"] + command, stdout=stdout, env=my_env)  # pylint: disable=consider-using-with
+        rank_command = ["python3"] + command
+
+        p = subprocess.Popen(rank_command, env=my_env)  # pylint: disable=consider-using-with
         processes.append(p)
-        logger.info(command)
+        logger.info(rank_command)
 
     for p in processes:
         p.wait()

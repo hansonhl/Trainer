@@ -485,9 +485,6 @@ class Trainer:
             self.scaler = None
 
         if self.args.restore_path:
-            print("="*10 + "DEBUG" + "="*10)
-            print("Restoring model from", self.args.restore_path)
-            print("="*25)
             (self.model, self.optimizer, self.scaler, self.restore_step, self.restore_epoch) = self.restore_model(
                 self.config, args.restore_path, self.model, self.optimizer, self.scaler
             )
